@@ -51,7 +51,7 @@ class MongoDB(object):
             self.submit('total_operations', k, v)
 
         # memory
-        for t in ['resident', 'virtual', 'mapped']:
+        for t in ['resident', 'virtual']:
             self.submit('memory', t, server_status['mem'][t])
 
         # connections
