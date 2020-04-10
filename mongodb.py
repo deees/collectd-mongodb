@@ -14,7 +14,7 @@ class MongoDB(object):
         self.plugin_name = "mongo"
         self.mongo_host = "127.0.0.1"
         self.mongo_port = 27017
-        self.mongo_db = ["admin", ]
+        self.mongo_db = set()
         self.mongo_user = None
         self.mongo_password = None
 
@@ -38,7 +38,7 @@ class MongoDB(object):
 
     def do_server_status(self):
         con = MongoClient(host=self.mongo_host, port=self.mongo_port, read_preference=ReadPreference.SECONDARY)
-        db = con[self.mongo_db[0]]
+        db = con[list(self.mongo_db)[0]]
         if self.mongo_user and self.mongo_password:
             db.authenticate(self.mongo_user, self.mongo_password)
         server_status = db.command('serverStatus')
@@ -118,6 +118,7 @@ class MongoDB(object):
         con.close()
 
     def config(self, obj):
+        self.mongo_db.add('admin')
         for node in obj.children:
             if node.key == 'Port':
                 self.mongo_port = int(node.values[0])
@@ -128,7 +129,8 @@ class MongoDB(object):
             elif node.key == 'Password':
                 self.mongo_password = node.values[0]
             elif node.key == 'Database':
-                self.mongo_db = node.values
+                for mongo_db in node.values:
+                    self.mongo_db.add(mongo_db)
             else:
                 collectd.warning("mongodb plugin: Unkown configuration key %s" % node.key)
 
